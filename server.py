@@ -5,7 +5,7 @@ import time
 app = Flask(__name__)
 
 
-# db = []
+
 
 
 @app.route("/")
@@ -32,13 +32,6 @@ def messenger():
     query = f" SELECT * FROM messages WHERE posting_time>{after_timestamp} LIMIT 100;"
     dbresponse = pgdb(query)
     return {'messages': dbresponse}
-    # for i in db:
-    #     if i['timestamp'] > after_timestamp:
-    #         break
-    #     else:
-    #         after_id += 1
-    # return {'messages': db[after_id:after_id + limit]}  # возвращает словарь {'messages': срез из базы данных}
-
 
 @app.route("/send", methods=['GET', 'POST'])  # получает запрос типа пост из button_pressed месенджера
 def send():
@@ -47,10 +40,6 @@ def send():
         query = (data['name'], data['text'], time.time())
         query = f"INSERT INTO messages (name, message, posting_time) VALUES {query}"
         pgdb(query)
-        db.append({'id': len(db),  # добавляет в БД новый словарь на основе полученного джейсон
-                   'name': data['name'],
-                   'text': data['text'],
-                   'timestamp': time.time()})
         return {'Status': 'ok'}
     except:
         return 'Все норм'
