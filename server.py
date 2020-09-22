@@ -3,7 +3,9 @@ from flask import Flask, request, abort
 import time
 
 app = Flask(__name__)
-db = []
+
+
+# db = []
 
 
 @app.route("/")
@@ -26,29 +28,24 @@ def messenger():
         after_timestamp = float(request.args['after_timestamp'])
     else:
         after_timestamp = 0
-    max_limit = 100
-    if 'limit' in request.args:
-        limit = int(request.args['limit'])
-        if limit > max_limit:
-            abort(400, 'too big limit')
-    else:
-        limit = max_limit
-
-    after_id = 0
-    for i in db:
-        if i['timestamp'] > after_timestamp:
-            break
-        else:
-            after_id += 1
-    return {'messages': db[after_id:after_id + limit]}  # возвращает словарь {'messages': срез из базы данных}
+    """нужно все строки из БД у которых posting_time больше after_timestamp"""
+    query = f" SELECT * FROM messages WHERE posting_time>{after_timestamp} LIMIT 100;"
+    dbresponse = pgdb(query)
+    return {'messages': dbresponse}
+    # for i in db:
+    #     if i['timestamp'] > after_timestamp:
+    #         break
+    #     else:
+    #         after_id += 1
+    # return {'messages': db[after_id:after_id + limit]}  # возвращает словарь {'messages': срез из базы данных}
 
 
 @app.route("/send", methods=['GET', 'POST'])  # получает запрос типа пост из button_pressed месенджера
 def send():
     try:
         data = request.json
-        query=(data['name'],data['text'],time.time())
-        query=f"INSERT INTO messages (name, message, posting_time) VALUES {query}"
+        query = (data['name'], data['text'], time.time())
+        query = f"INSERT INTO messages (name, message, posting_time) VALUES {query}"
         pgdb(query)
         db.append({'id': len(db),  # добавляет в БД новый словарь на основе полученного джейсон
                    'name': data['name'],
